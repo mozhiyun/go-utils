@@ -18,7 +18,7 @@ type MyConsumer struct {
 }
 
 // NewMyConsumer 构造
-func NewMyConsumer(p taskProcessor, ctx context.Context) *MyConsumer {
+func NewMyConsumer(ctx context.Context, p taskProcessor) *MyConsumer {
 	c := &MyConsumer{
 		processor: p,
 		ctx:       ctx,

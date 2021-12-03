@@ -53,7 +53,6 @@ func WithBatchSize(bs int) WorkerOptions {
 // Worker 消息处理器
 type Worker struct {
 	wg        sync.WaitGroup
-	ctx       context.Context
 	msgQ      chan *task //通道缓冲默认2048个消息
 	handler   Handler    //消息处理接口
 	thread    int        //开多少个线程处理消息默认1个线程
@@ -62,9 +61,8 @@ type Worker struct {
 }
 
 // NewWorker 构造
-func NewWorker(ctx context.Context, msgHandler Handler, options ...WorkerOptions) *Worker {
+func NewWorker(msgHandler Handler, options ...WorkerOptions) *Worker {
 	w := &Worker{
-		ctx:       ctx,
 		msgQ:      make(chan *task, 2048),
 		handler:   msgHandler,
 		thread:    1,
@@ -78,7 +76,7 @@ func NewWorker(ctx context.Context, msgHandler Handler, options ...WorkerOptions
 }
 
 // Run 开始消费
-func (w *Worker) Run() {
+func (w *Worker) Run(ctx context.Context) {
 
 	// 线程数
 	thread := w.thread
@@ -97,7 +95,7 @@ func (w *Worker) Run() {
 		LOOP:
 			for {
 				select {
-				case <-w.ctx.Done():
+				case <-ctx.Done():
 					log.Printf("[worker] worker[%d] is quiting", idx)
 					// 要把通道里的全部执行完才能退出
 					for {
